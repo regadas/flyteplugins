@@ -25,6 +25,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	pluginsConfig "github.com/lyft/flyteplugins/go/tasks/config"
+	"github.com/lyft/flytestdlib/logger"
 )
 
 const KindFlinkCluster = "FlinkCluster"
@@ -58,6 +59,8 @@ func (flinkResourceHandler) GetProperties() pluginsCore.PluginProperties {
 
 // Creates a new Job that will execute the main container as well as any generated types the result from the execution.
 func (flinkResourceHandler) BuildResource(ctx context.Context, taskCtx pluginsCore.TaskExecutionContext) (k8s.Resource, error) {
+	logger.Infof(ctx, "Flink: BuildResource %v", taskCtx.TaskExecutionMetadata())
+
 	taskTemplate, err := taskCtx.TaskReader().Read(ctx)
 	if err != nil {
 		return nil, errors.Errorf(errors.BadTaskSpecification, "unable to fetch task specification [%v]", err.Error())
@@ -135,6 +138,7 @@ func (flinkResourceHandler) BuildResource(ctx context.Context, taskCtx pluginsCo
 }
 
 func (flinkResourceHandler) BuildIdentityResource(ctx context.Context, taskCtx pluginsCore.TaskExecutionMetadata) (k8s.Resource, error) {
+	logger.Infof(ctx, "Flink: BuildIdentityResource %v", taskCtx)
 	return &flinkOp.FlinkCluster{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       KindFlinkCluster,
@@ -158,7 +162,8 @@ func getEventInfoForFlink(fc *flinkOp.FlinkCluster) (*pluginsCore.TaskInfo, erro
 	}, nil
 }
 
-func (flinkResourceHandler) GetTaskPhase(ctx context.Context, pluginContext k8s.PluginContext, resource k8s.Resource) (pluginsCore.PhaseInfo, error) {
+func (r flinkResourceHandler) GetTaskPhase(ctx context.Context, pluginContext k8s.PluginContext, resource k8s.Resource) (pluginsCore.PhaseInfo, error) {
+	logger.Info(ctx, "Flink: GetTaskPhase")
 
 	app := resource.(*flinkOp.FlinkCluster)
 	info, err := getEventInfoForFlink(app)
