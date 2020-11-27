@@ -43,7 +43,8 @@ replace (
 	github.com/GoogleCloudPlatform/spark-on-k8s-operator => github.com/lyft/spark-on-k8s-operator v0.1.4-0.20201027003055-c76b67e3b6d0
 	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.3.1
 	//FIXME(regadas):
-	github.com/lyft/flyteidl => /Users/regadas/projects/flyteidl
+	// github.com/lyft/flyteidl => /Users/regadas/projects/flyteidl
+	github.com/lyft/flyteidl => github.com/regadas/flyteidl v0.18.11-0.20201127123048-d4999c568d01
 	k8s.io/api => github.com/lyft/api v0.0.0-20191031200350-b49a72c274e0
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.18.3
 	k8s.io/apimachinery => github.com/lyft/apimachinery v0.0.0-20191031200210-047e3ea32d7f
