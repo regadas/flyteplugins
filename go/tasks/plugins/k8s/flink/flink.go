@@ -2,7 +2,6 @@ package flink
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -173,18 +172,28 @@ func (r flinkResourceHandler) GetTaskPhase(ctx context.Context, pluginContext k8
 
 	occurredAt := time.Now()
 	// TODO(regadas): we should probably cover cluster state
-	switch app.Status.Components.Job.State {
-	case flinkOp.JobStatePending, flinkOp.JobStateUpdating:
+	// case flinkOp.JobStatePending, flinkOp.JobStateUpdating:
+	//  return pluginsCore.PhaseInfoQueued(occurredAt, pluginsCore.DefaultPhaseVersion, "job queued"), nil
+	// case flinkOp.JobStateRunning:
+	// 	return pluginsCore.PhaseInfoInitializing(occurredAt, pluginsCore.DefaultPhaseVersion, "job submitted", info), nil
+	// case flinkOp.JobStateFailed:
+	// 	reason := fmt.Sprintln("Flink Job  Submission Failed with Error")
+	// 	return pluginsCore.PhaseInfoRetryableFailure(errors.DownstreamSystemError, reason, info), nil
+	// case flinkOp.JobStateCancelled:
+	// 	reason := fmt.Sprintf("Flink Job cancelled")
+	// 	return pluginsCore.PhaseInfoRetryableFailure(errors.DownstreamSystemError, reason, info), nil
+	// case flinkOp.JobStateSucceeded:
+	// 	return pluginsCore.PhaseInfoSuccess(info), nil
+
+	// FIXME(regadas):💣
+
+	logger.Infof(ctx, "State %s", app.Status.State)
+	switch app.Status.State {
+	case flinkOp.ClusterStateCreating, flinkOp.ClusterStateReconciling, flinkOp.ClusterStateUpdating:
 		return pluginsCore.PhaseInfoQueued(occurredAt, pluginsCore.DefaultPhaseVersion, "job queued"), nil
-	case flinkOp.JobStateRunning:
+	case flinkOp.ClusterStateRunning:
 		return pluginsCore.PhaseInfoInitializing(occurredAt, pluginsCore.DefaultPhaseVersion, "job submitted", info), nil
-	case flinkOp.JobStateFailed:
-		reason := fmt.Sprintln("Flink Job  Submission Failed with Error")
-		return pluginsCore.PhaseInfoRetryableFailure(errors.DownstreamSystemError, reason, info), nil
-	case flinkOp.JobStateCancelled:
-		reason := fmt.Sprintf("Flink Job cancelled")
-		return pluginsCore.PhaseInfoRetryableFailure(errors.DownstreamSystemError, reason, info), nil
-	case flinkOp.JobStateSucceeded:
+	case flinkOp.ClusterStateStopped, flinkOp.ClusterStateStopping, flinkOp.ClusterStatePartiallyStopped:
 		return pluginsCore.PhaseInfoSuccess(info), nil
 	}
 
