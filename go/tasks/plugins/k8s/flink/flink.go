@@ -23,6 +23,7 @@ import (
 
 	"github.com/lyft/flyteidl/gen/pb-go/flyteidl/core"
 	"github.com/lyft/flyteidl/gen/pb-go/flyteidl/plugins"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	pluginsConfig "github.com/lyft/flyteplugins/go/tasks/config"
@@ -92,11 +93,23 @@ func (flinkResourceHandler) BuildResource(ctx context.Context, taskCtx pluginsCo
 		Ports: flinkOp.JobManagerPorts{
 			UI: &JobManagerUiPort,
 		},
+		Resources: corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("1.5"),
+				corev1.ResourceMemory: resource.MustParse("4Gi"),
+			},
+		},
 	}
 
 	taskManagerReplicas := int32(1)
 	taskManager := flinkOp.TaskManagerSpec{
 		Replicas: taskManagerReplicas,
+		Resources: corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("1.5"),
+				corev1.ResourceMemory: resource.MustParse("4Gi"),
+			},
+		},
 	}
 
 	// Start with default config values.
