@@ -85,29 +85,29 @@ func (flinkResourceHandler) BuildResource(ctx context.Context, taskCtx pluginsCo
 	}
 	flinkEnvVars["FLYTE_MAX_ATTEMPTS"] = strconv.Itoa(int(taskCtx.TaskExecutionMetadata().GetMaxAttempts()))
 
-	jobManagerReplicas := int32(1)
+	logger.Info(ctx, "flink: updated resource limits and replicas")
+
 	JobManagerUiPort := int32(8081)
 
 	jobManager := flinkOp.JobManagerSpec{
-		Replicas: &jobManagerReplicas,
 		Ports: flinkOp.JobManagerPorts{
 			UI: &JobManagerUiPort,
 		},
 		Resources: corev1.ResourceRequirements{
 			Limits: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse("1.5"),
-				corev1.ResourceMemory: resource.MustParse("4Gi"),
+				corev1.ResourceCPU:    resource.MustParse("1"),
+				corev1.ResourceMemory: resource.MustParse("1Gi"),
 			},
 		},
 	}
 
-	taskManagerReplicas := int32(1)
+	taskManagerReplicas := int32(3)
 	taskManager := flinkOp.TaskManagerSpec{
 		Replicas: taskManagerReplicas,
 		Resources: corev1.ResourceRequirements{
 			Limits: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse("1.5"),
-				corev1.ResourceMemory: resource.MustParse("4Gi"),
+				corev1.ResourceCPU:    resource.MustParse("1"),
+				corev1.ResourceMemory: resource.MustParse("1Gi"),
 			},
 		},
 	}
