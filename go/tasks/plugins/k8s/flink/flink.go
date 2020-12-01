@@ -2,8 +2,10 @@ package flink
 
 import (
 	"context"
+	"math/rand"
 	"strconv"
 	"time"
+	"unsafe"
 
 	"github.com/lyft/flyteplugins/go/tasks/pluginmachinery"
 	"github.com/lyft/flyteplugins/go/tasks/pluginmachinery/flytek8s"
@@ -107,10 +109,14 @@ func (flinkResourceHandler) BuildResource(ctx context.Context, taskCtx pluginsCo
 		flinkProperties[k] = v
 	}
 
+	jobParallelism := int32(1)
 	fc := &flinkOp.FlinkCluster{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       KindFlinkCluster,
 			APIVersion: flinkOp.GroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: randStringBytesMaskImprSrcUnsafe(10),
 		},
 		Spec: flinkOp.FlinkClusterSpec{
 			Image: flinkOp.ImageSpec{
@@ -120,8 +126,10 @@ func (flinkResourceHandler) BuildResource(ctx context.Context, taskCtx pluginsCo
 			JobManager:  jobManager,
 			TaskManager: taskManager,
 			Job: &flinkOp.JobSpec{
-				JarFile:   flinkJob.JarFile,
-				ClassName: &flinkJob.MainClass,
+				JarFile:     flinkJob.JarFile,
+				ClassName:   &flinkJob.MainClass,
+				Args:        []string{},
+				Parallelism: &jobParallelism,
 			},
 			FlinkProperties: flinkProperties,
 		},
@@ -134,6 +142,33 @@ func (flinkResourceHandler) BuildResource(ctx context.Context, taskCtx pluginsCo
 	}
 
 	return fc, nil
+}
+
+var src = rand.NewSource(time.Now().UnixNano())
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const (
+	letterIdxBits = 6                    // 6 bits to represent a letter index
+	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+)
+
+func randStringBytesMaskImprSrcUnsafe(n int) string {
+	b := make([]byte, n)
+	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
+	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
+		if remain == 0 {
+			cache, remain = src.Int63(), letterIdxMax
+		}
+		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
+			b[i] = letterBytes[idx]
+			i--
+		}
+		cache >>= letterIdxBits
+		remain--
+	}
+
+	return *(*string)(unsafe.Pointer(&b))
 }
 
 func (flinkResourceHandler) BuildIdentityResource(ctx context.Context, taskCtx pluginsCore.TaskExecutionMetadata) (k8s.Resource, error) {
